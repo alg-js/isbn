@@ -13,21 +13,11 @@
  * limitations under the License.
  */
 
-/*
-Formats:
-ISBN: 9789295055124
-ISBN human readable ISBN 978-90-70002-34-3
-ISBN-A Human Readable: ISBN-A 10.978.92.95055/124
-The ISBN 978-92-95055-12-4 can be expressed as the ISBN-A 10.978.92.95055/124
-ISBN-A DOI:  http://doi.org/10.978.8889637/418
-URN: URN:ISBN:978-92-95055-12-4
-URL RESOLVER:  http://urn.fi/URN:ISBN:978-952-10-9981-6
- */
 
-
-import {isValid} from "../src/main.js";
+import {isValid, toDigits} from "../src/main.js";
 import {range} from "jsr:@alg/range";
-import {assert, assertFalse} from "jsr:@std/assert";
+import {assert, assertFalse, assertEquals} from "jsr:@std/assert";
+
 
 Deno.test({
     name: "random strings are not ISBNs",
@@ -45,6 +35,14 @@ Deno.test({
         range(10).filter((it) => it !== 4).forEach(
             (e) => assertFalse(isValid(`978929505512${e}`)),
         );
+    },
+});
+
+Deno.test({
+    name: "ISBNs with a valid check digit but unrecognised gs1 are not valid",
+    fn: () => {
+        assertFalse(isValid("9779295055125"));
+        assertEquals(toDigits("9779295055125"), null);
     },
 });
 

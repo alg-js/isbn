@@ -15,10 +15,10 @@
 
 /* @ts-self-types="./main.d.ts" */
 
-const ISBN_13 = /^.*(?<!\d)(\d{13})$/;
-const HYPHENATED_ISBN_13 = /^.*(?<!\d)((\d{3})-(\d+)-(\d+)-(\d+)-(\d))$/;
-const SPACED_ISBN_13 = /^.*(?<!\d)((\d{3})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d))$/;
-const ISBN_A = /^.*10\.(\d{3}\.[\d.]+\/\d+)$/;
+const ISBN_13 = /^.*(?<!\d)(97[89]\d{10})$/;
+const HYPHENATED_ISBN_13 = /^.*(?<!\d)((97[89])-(\d+)-(\d+)-(\d+)-(\d))$/;
+const SPACED_ISBN_13 = /^.*(?<!\d)((97[89])\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d))$/;
+const ISBN_A = /^.*10\.(97[89]\.[\d.]+\/\d+)$/;
 
 
 export function isValid(string) {
