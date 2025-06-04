@@ -3,7 +3,7 @@
 [![JSR](https://jsr.io/badges/@alg/isbn)](https://jsr.io/@alg/isbn)
 [![License](https://img.shields.io/badge/Apache--2.0-green?label=license)](https://github.com/alg-js/isbn/blob/main/LICENSE)
 
-ISO 2108:2017 (AKA ISBN) validation
+ISO 2108:2017 (AKA ISBN) parsing, metadata, and validation.
 
 ## Install
 
@@ -13,41 +13,58 @@ deno add jsr:@alg/isbn
 
 ## Example
 
-The `isValid` function returns `true` if the given string is a valid ISBN
-description as defined by ISO 2108:2017.
+This package exports an `ISBN` class and a `validateChecksum` function. All
+functions/methods can parse ISBNs in digit, human-readable, ISBN-A, and URN
+formats as defined by the ISO 2108:2017 (ISBN) standard.
 
-Here "ISBN description" refers to any method of writing an ISBN. For example:
-- A String of digits: `9780140447934`
-- A human-readable form: `ISBN-13 978-0-140-44793-4` or `978 0 140 44793 4`
-- A DOI/ISBN-A: `10.978.0.140/447934`
-- A URN: `URN:ISBN:978-0-140-44793-4`
+The `ISBN` class parses and processes the GS1, group, registrant, publication,
+and check digit elements of ISBNs. As well as validating the group and
+registrant have been assigned by the ISBN Registration Authority and that the
+ISBN has a valid check digit. The `ISBN` class also provides metadata on the
+group agencies that have been assigned by the ISBN Registration Authority.
+For example:
 
 ```javascript
-import * as isbn from "@alg/isbn";
+import {ISBN} from "@alg/isbn";
 
-console.log(isbn.isValid("9780140447934"));  // true
-console.log(isbn.isValid("9780140447931"));  // false (invalid check digit)
+const dunce = ISBN.parse("9780802130204");
+console.log(dunce.toString());  // ISBN 978-0-8021-3020-4
+console.log(dunce.agency);  // English language
 
-console.log(isbn.isValid("978-0-140-44793-4"));  // true
-console.log(isbn.isValid("ISBN-13 978 0 140 44793 4"));  // true
-console.log(isbn.isValid("https://doi.org/10.978.0.140/447934"));  // true
+const idioten = ISBN.parse("ISBN 978 3 423 21434 6");
+console.log(idioten.toString());  // ISBN 978-3-423-21434-6
+console.log(idioten.agency);  // German language
 ```
 
-This does not check that the ISBN has been assigned as an ISBN, DOI, etc. —
-just that the ISBN adders to the check-digit calculation defined by
-ISO 2108:2017.
+The allocated group and registrant rages are current up to July 2025, if
+the group allocations have been updated since then,
 
-The ISBN digits can be extracted from ISBN descriptions using the `toDigits`
+When parsing ISBNs the methods `parse`, `parseResult`, and `parseOrUndefined`
+handle invalid ISBNs in different ways:
+
+```javascript
+import {ISBN} from "@alg/isbn";
+
+try {
+    ISBN.parse("9799999999983");
+} catch (e) {
+    console.log(e.toString());  // Error: Unrecognised ISBN group element
+}
+
+// {err: "Invalid ISBN Check Digit"},
+console.log(ISBN.parseResult("9780802130205"));
+
+console.log(ISBN.parseOrUndefined("Not an ISBN!!"));  // undefined
+```
+
+If you only need to validate the checksum of ISBNs, use the `validateChecksum`
 function:
 
 ```javascript
-import * as isbn from "@alg/isbn";
+import {validateChecksum} from "@alg/isbn";
 
-console.log(isbn.toDigits("9780140447931"));  // null (invalid check digit)
-
-// All 9780140447934
-console.log(isbn.toDigits("9780140447934"));
-console.log(isbn.toDigits("978-0-140-44793-4"));
-console.log(isbn.toDigits("ISBN-13 978 0 140 44793 4"));
-console.log(isbn.toDigits("https://doi.org/10.978.0.140/447934"));
+console.log(validateChecksum("9780802130204"));  // true
+console.log(validateChecksum("9780802130205"));  // false
 ```
+
+This also ensures the GS1 prefix is valid.
