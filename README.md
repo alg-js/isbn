@@ -3,13 +3,35 @@
 [![JSR](https://jsr.io/badges/@alg/isbn)](https://jsr.io/@alg/isbn)
 [![License](https://img.shields.io/badge/Apache--2.0-green?label=license)](https://github.com/alg-js/isbn/blob/main/LICENSE)
 
-ISO 2108:2017 (AKA ISBN) parsing, metadata, and validation.
+A standalone package for ISO 2108:2017 (AKA ISBN) parsing, metadata, and
+validation.
 
 ## Install
 
-```
+```bash
 deno add jsr:@alg/isbn
 ```
+
+<details>
+<summary>Other Install Options</summary>
+
+```bash
+npx jsr add @alg/isbn
+```
+```bash
+bunx jsr add @alg/isbn
+```
+```bash
+pnpm i jsr:@alg/isbn
+```
+```bash
+yarn add jsr:@alg/isbn
+```
+```bash
+vlt install jsr:@alg/isbn
+```
+
+</details>
 
 ## Example
 
@@ -21,8 +43,8 @@ The `ISBN` class parses and processes the GS1, group, registrant, publication,
 and check digit elements of ISBNs. As well as validating the group and
 registrant have been assigned by the ISBN Registration Authority and that the
 ISBN has a valid check digit. The `ISBN` class also provides metadata on the
-group agencies that have been assigned by the ISBN Registration Authority.
-For example:
+group agencies that have been assigned by the ISBN Registration Authority. For
+example:
 
 ```javascript
 import {ISBN} from "@alg/isbn";
@@ -36,8 +58,9 @@ console.log(idioten.toString());  // ISBN 978-3-423-21434-6
 console.log(idioten.agency);  // German language
 ```
 
-The allocated group and registrant rages are current up to July 2025, if
-the group allocations have been updated since then,
+The allocated group and registrant rages are current up to July 2025, if the
+group allocations have been updated since then, please create an issue on this
+repository.
 
 When parsing ISBNs the methods `parse`, `parseResult`, and `parseOrUndefined`
 handle invalid ISBNs in different ways:
