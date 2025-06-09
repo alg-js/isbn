@@ -1,7 +1,7 @@
 # @alg/isbn
 
 [![JSR](https://jsr.io/badges/@alg/isbn)](https://jsr.io/@alg/isbn)
-[![License](https://img.shields.io/badge/Apache--2.0-green?label=license)](https://github.com/alg-js/isbn/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/Apache--2.0-green?label=license)](https://codeberg.org/algjs/isbn/src/branch/main/LICENSE)
 
 A standalone package for ISO 2108:2017 (AKA ISBN) parsing, metadata, and
 validation.
