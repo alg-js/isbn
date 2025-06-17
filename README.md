@@ -5,7 +5,7 @@
 [![JSR](https://jsr.io/badges/@alg/isbn)](https://jsr.io/@alg/isbn)
 
 A standalone package for ISO 2108:2017 (AKA ISBN) parsing, metadata, and
-validation.
+validation. Provides legacy support for ISO 2108:2005 (e.g. ISBN-10s).
 
 ## Install
 
@@ -91,11 +91,30 @@ If you only need to validate the checksum of ISBNs, use the `validateChecksum`
 function:
 
 ```javascript
-import {validateChecksum} from "@alg/isbn";
+import {hasValidCheckDigit} from "@alg/isbn";
 
-console.log(validateChecksum("9780802130204"));  // true
-console.log(validateChecksum("9780802130205"));  // false
+console.log(hasValidCheckDigit("9780802130204"));  // true
+console.log(hasValidCheckDigit("9780802130205"));  // false
 ```
+
+Check-digits for ISBNs can be calculated using the `checkDigit` function:
+
+```javascript
+import {checkDigit} from "@alg/isbn";
+
+console.log(checkDigit("978080213020"));  // "4"
+```
+
+### ISO 2108:2005 (e.g. ISBN-10 values)
+
+The `@alg/isbn/legacy` endpoint provides an `ISBN` class, and
+`hasValidCheckDigit` and `checkDigit` functions. These work in the same way as
+`@alg/isbn` but can parse ISBN-10 and ISBN-13 values.
+
+Note: the legacy ISBN class has no constructor. When parsing ISBN values using
+the `parse` constructor methods on the legacy ISBN class, an instance of the
+base `@alg/isbn` `ISBN` class is returned. Conversion from ISBN-10 to ISBN-13
+values is automatic.
 
 ## Valid Formats
 

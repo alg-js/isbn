@@ -14,7 +14,7 @@
  */
 
 
-import {validateChecksum, ISBN} from "../src/main.js";
+import {hasValidCheckDigit, ISBN, checkDigit} from "../src/main.js";
 import {range} from "jsr:@alg/range";
 import {assert, assertFalse, assertEquals, assertThrows} from "jsr:@std/assert";
 
@@ -22,10 +22,10 @@ import {assert, assertFalse, assertEquals, assertThrows} from "jsr:@std/assert";
 Deno.test({
     name: "random strings are do not have valid checksums",
     fn: () => {
-        assertFalse(validateChecksum(""));
-        assertFalse(validateChecksum("Foooooooooooo"));
-        assertFalse(validateChecksum("1231231231231"));
-        assertFalse(validateChecksum(" "));
+        assertFalse(hasValidCheckDigit(""));
+        assertFalse(hasValidCheckDigit("Foooooooooooo"));
+        assertFalse(hasValidCheckDigit("1231231231231"));
+        assertFalse(hasValidCheckDigit(" "));
     },
 });
 
@@ -33,7 +33,7 @@ Deno.test({
     name: "ISBNs with an invalid check digit are not valid",
     fn: () => {
         range(10).filter((it) => it !== 4).forEach(
-            (e) => assertFalse(validateChecksum(`978929505512${e}`)),
+            (e) => assertFalse(hasValidCheckDigit(`978929505512${e}`)),
         );
     },
 });
@@ -41,36 +41,36 @@ Deno.test({
 Deno.test({
     name: "Valid ISBN-13s consisting of only digits can be validated",
     fn: () => {
-        assert(validateChecksum("9789295055124"));
+        assert(hasValidCheckDigit("9789295055124"));
     },
 });
 
 Deno.test({
     name: "Valid human-readable ISBN-13s can be validated",
     fn: () => {
-        assert(validateChecksum("978-90-70002-34-3"));
-        assert(validateChecksum("ISBN 978-90-70002-34-3"));
-        assert(validateChecksum("ISBN-13 978-90-70002-34-3"));
-        assert(validateChecksum("978 90 70002 34 3"));
-        assert(validateChecksum("ISBN 978 90 70002 34 3"));
-        assert(validateChecksum("ISBN 13 978 90 70002 34 3"));
+        assert(hasValidCheckDigit("978-90-70002-34-3"));
+        assert(hasValidCheckDigit("ISBN 978-90-70002-34-3"));
+        assert(hasValidCheckDigit("ISBN-13 978-90-70002-34-3"));
+        assert(hasValidCheckDigit("978 90 70002 34 3"));
+        assert(hasValidCheckDigit("ISBN 978 90 70002 34 3"));
+        assert(hasValidCheckDigit("ISBN 13 978 90 70002 34 3"));
     },
 });
 
 Deno.test({
     name: "ISBN-As can be validated",
     fn: () => {
-        assert(validateChecksum("ISBN-A 10.978.92.95055/124"));
-        assert(validateChecksum("https://doi.org/10.978.8889637/418"));
+        assert(hasValidCheckDigit("ISBN-A 10.978.92.95055/124"));
+        assert(hasValidCheckDigit("https://doi.org/10.978.8889637/418"));
     },
 });
 
 Deno.test({
     name: "URN:ISBNs can be validated",
     fn: () => {
-        assert(validateChecksum("URN:ISBN:978-0-395-36341-6"));
-        assert(validateChecksum("URN:ISBN:9789070002343"));
-        assert(validateChecksum("https://urn.fi/URN:ISBN:978-952-10-9981-6"));
+        assert(hasValidCheckDigit("URN:ISBN:978-0-395-36341-6"));
+        assert(hasValidCheckDigit("URN:ISBN:9789070002343"));
+        assert(hasValidCheckDigit("https://urn.fi/URN:ISBN:978-952-10-9981-6"));
     },
 });
 
@@ -148,23 +148,23 @@ Deno.test({
 
         assertEquals(
             ISBN.parseOrUndefined("Not an ISBN!!"),
-            undefined
+            undefined,
         );
         assertEquals(
             ISBN.parseOrUndefined("9779295055125"),
-            undefined
+            undefined,
         );
         assertEquals(
             ISBN.parseOrUndefined("9780802130205"),
-            undefined
+            undefined,
         );
         assertEquals(
             ISBN.parseOrUndefined("9799999999983"),
-            undefined
+            undefined,
         );
         assertEquals(
             ISBN.parseOrUndefined("9781060000001"),
-            undefined
+            undefined,
         );
     },
 });
@@ -192,5 +192,55 @@ Deno.test({
             ISBN.parseResult("978\n90 70002 34 3"),
             {err: "Invalid ISBN format"},
         );
-    }
-})
+    },
+});
+
+Deno.test({
+    name: "Reserved agencies have no valid ISBNs",
+    fn: () => {
+        assertEquals(
+            ISBN.parseResult("9789990200003"),
+            {err: "Unrecognised ISBN registrant element"},
+        );
+    },
+});
+
+Deno.test({
+    name: "Registrant ranges with no length have no valid ISBNs",
+    fn: () => {
+        assertEquals(
+            ISBN.parseResult("9781060000001"),
+            {err: "Unrecognised ISBN registrant element"},
+        );
+    },
+});
+
+
+Deno.test({
+    name: "ISBN strings can be validated without parsing",
+    fn: () => {
+        assert(ISBN.isValid("9780802130204"));
+        assert(ISBN.isValid("9783423214346"));
+        assertFalse(ISBN.isValid("Not an ISBN!!"));
+        assertFalse(ISBN.isValid("9779295055125"));
+        assertFalse(ISBN.isValid("9780802130205"));
+        assertFalse(ISBN.isValid("9799999999983"));
+        assertFalse(ISBN.isValid("9781060000001"));
+    },
+});
+
+Deno.test({
+    name: "Strings can have their check digits calculated",
+    fn: () => {
+        assertEquals(checkDigit("978080213020"), "4");
+        assertEquals(checkDigit("978342321434"), "6");
+    },
+});
+
+Deno.test({
+    name: "check digits are undefined for strings of the wrong length",
+    fn: () => {
+        assertEquals(checkDigit("9780802130201"), undefined);
+        assertEquals(checkDigit("97834232143"), undefined);
+    },
+});

@@ -133,7 +133,7 @@ export class ISBN {
    * @param {string} string
    * @returns {{result: ISBN} | {err: string}}
    */
-  static parseResult(string: string): {result: ISBN} | {err: string};
+  static parseResult(string: string): { result: ISBN } | { err: string };
 
   /**
    * Attempts to parse the given ISBN string. Returns an {@link ISBN} object if
@@ -162,6 +162,18 @@ export class ISBN {
    * @returns {ISBN|undefined}
    */
   static parseOrUndefined(string: string): ISBN | undefined;
+
+  /**
+   * Returns `true` if the given ISBN is a valid ISBN value and `false`
+   * otherwise.
+   *
+   * See {@link ISBN.parse} for more information on what constitutes a valid
+   * ISBN string.
+   *
+   * @param {string} string
+   * @returns {boolean}
+   */
+  static isValid(string: string): boolean;
 
   /** Returns a 5-tuple of the elements of this ISBN. */
   elements(): [string, string, string, string, string];
@@ -220,3 +232,11 @@ export class ISBN {
  * @returns boolean
  */
 export function hasValidChecksum(string: string): boolean;
+
+/**
+ * Calculates the check digit for 12 digits of an ISBN
+ *
+ * @param {string|string[]} string
+ * @returns {number}
+ */
+export function checkDigitOf(string: string | string[]): number;

@@ -16,19 +16,11 @@
 /* @ts-self-types="./main.d.ts" */
 
 import rangeInfo from "./range.json" with {type: "json"};
-
-const prefix = /\D*(?:13)?\s*(?<!\d)/.source;
-const doiPrefix = /.*(?<!\d)10\./.source;
-
-const digits = /\d{13}/.source;
-const hyphens = /\d{3}-\d+-\d+-\d+-\d/.source;
-const spaces = /\d{3}\s+\d+\s+\d+\s+\d+\s+\d/.source;
-const url = /\d{3}\.[\d.]+\/\d+/.source;
-
-const isbn = `(?<digits>(?:${digits})|(?:${hyphens})|(?:${spaces}))`;
-const isbna = `(?<digits>${url})`;
-
-const ISBN_13 = new RegExp(`(?:^${prefix}${isbn}$)|(?:^${doiPrefix}${isbna}$)`);
+import {
+    parseIsbn13,
+    hasValidIsbn13CheckDigit,
+    isbn13CheckDigit, matchIsbn13,
+} from "./utils.js";
 
 export class ISBN {
     constructor(gs1, group, registrant, publication, checkDigit) {
@@ -49,40 +41,7 @@ export class ISBN {
     }
 
     static parseResult(string) {
-        const digits = rawDigits(string);
-        if (digits === undefined) {
-            return {err: "Invalid ISBN format"};
-        }
-        if (!checkDigits(digits)) {
-            return {err: "Invalid ISBN Check Digit"};
-        }
-
-        let [prefix, rest] = [digits.slice(0, 3), digits.slice(3)];
-        const groups = rangeInfo[prefix];
-        if (groups === undefined) {
-            return {err: "Invalid ISBN GS1 prefix"};
-        }
-        const group = Object.keys(groups).find(k => rest.startsWith(k));
-        if (group === undefined) {
-            return {err: "Unrecognised ISBN group element"};
-        }
-        rest = rest.slice(group.length);
-        const rules = groups[group]["rules"];
-        const registrant = findRegistrant(rest, rules);
-        if (registrant === undefined) {
-            return {err: "Unrecognised ISBN registrant element"};
-        }
-        const publication = rest.slice(registrant.length, -1);
-        const checkDigit = rest.at(-1);
-        return {
-            result: new ISBN(
-                prefix,
-                group,
-                registrant,
-                publication,
-                checkDigit,
-            ),
-        };
+        return parseIsbn13(string);
     }
 
     static parseOrUndefined(string) {
@@ -92,6 +51,10 @@ export class ISBN {
         } else {
             return result;
         }
+    }
+
+    static isValid(string) {
+        return this.parseResult(string).result !== undefined
     }
 
     components() {
@@ -125,41 +88,11 @@ export class ISBN {
     }
 }
 
-export function validateChecksum(string) {
-    const digits = rawDigits(string);
-    return digits !== undefined && checkDigits(digits);
+export function hasValidCheckDigit(string) {
+    const digits = matchIsbn13(string)
+    return digits !== undefined && hasValidIsbn13CheckDigit(digits)
 }
 
-function rawDigits(string) {
-    const digits = ISBN_13.exec(string)
-        ?.groups
-        ?.digits
-        ?.replaceAll?.(/[\-\s./]/g, "");
-    if (string.includes("\n") || digits === undefined || digits.length !== 13) {
-        return undefined;
-    } else {
-        return digits;
-    }
-}
-
-function checkDigits(digits) {
-    digits = [...digits].map(e => Number(e));
-    const checkSum = digits
-        .slice(0, -1)
-        .reduce((a, e, i) => a + (i % 2 === 0 ? 1 : 3) * e);
-    const checkDigit = 10 - checkSum % 10;
-    return checkDigit === digits.at(-1);
-}
-
-function findRegistrant(rest, rules) {
-    for (let i = 0; i < rules.length; i += 3) {
-        const length = rules[i];
-        const restNum = Number.parseInt(rest.slice(0, length));
-        const lo = rules[i + 1];
-        const hi = rules[i + 2];
-        if (lo <= restNum && restNum <= hi) {
-            return rest.slice(0, length);
-        }
-    }
-    return undefined;
+export function checkDigit(digits) {
+    return isbn13CheckDigit(...digits)
 }
