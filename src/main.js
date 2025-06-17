@@ -17,12 +17,18 @@
 
 import rangeInfo from "./range.json" with {type: "json"};
 
+const prefix = /\D*(?:13)?\s*(?<!\d)/.source;
+const doiPrefix = /.*(?<!\d)10\./.source;
 
-const ISBN_13 = /^.*(?<!\d)(97[89]\d{10})$/;
-const HYPHENATED_ISBN_13 = /^.*(?<!\d)((97[89])-(\d+)-(\d+)-(\d+)-(\d))$/;
-const SPACED_ISBN_13 = /^.*(?<!\d)((97[89])\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d))$/;
-const ISBN_A = /^.*10\.(97[89]\.[\d.]+\/\d+)$/;
+const digits = /\d{13}/.source;
+const hyphens = /\d{3}-\d+-\d+-\d+-\d/.source;
+const spaces = /\d{3}\s+\d+\s+\d+\s+\d+\s+\d/.source;
+const url = /\d{3}\.[\d.]+\/\d+/.source;
 
+const isbn = `(?<digits>(?:${digits})|(?:${hyphens})|(?:${spaces}))`;
+const isbna = `(?<digits>${url})`;
+
+const ISBN_13 = new RegExp(`(?:^${prefix}${isbn}$)|(?:^${doiPrefix}${isbna}$)`);
 
 export class ISBN {
     constructor(gs1, group, registrant, publication, checkDigit) {
@@ -53,11 +59,9 @@ export class ISBN {
 
         let [prefix, rest] = [digits.slice(0, 3), digits.slice(3)];
         const groups = rangeInfo[prefix];
-        // This is handled by the REGEX - but this might change an will need to
-        // be handled here
-        // if (groups === undefined) {
-        //     return {err: "Invalid ISBN GS1 prefix"};
-        // }
+        if (groups === undefined) {
+            return {err: "Invalid ISBN GS1 prefix"};
+        }
         const group = Object.keys(groups).find(k => rest.startsWith(k));
         if (group === undefined) {
             return {err: "Unrecognised ISBN group element"};
@@ -127,19 +131,11 @@ export function validateChecksum(string) {
 }
 
 function rawDigits(string) {
-    let match;
-    let digits;
-    if ((match = ISBN_13.exec(string)) !== null) {
-        digits = match[1];
-    } else if ((match = HYPHENATED_ISBN_13.exec(string)) !== null) {
-        digits = match[1].replaceAll("-", "");
-    } else if ((match = SPACED_ISBN_13.exec(string)) !== null) {
-        digits = match[1].replaceAll(" ", "");
-    } else if ((match = ISBN_A.exec(string)) !== null) {
-        digits = match[1].replaceAll(/[./]/g, "");
-    }
-
-    if (digits === undefined || digits.length !== 13) {
+    const digits = ISBN_13.exec(string)
+        ?.groups
+        ?.digits
+        ?.replaceAll?.(/[\-\s./]/g, "");
+    if (string.includes("\n") || digits === undefined || digits.length !== 13) {
         return undefined;
     } else {
         return digits;

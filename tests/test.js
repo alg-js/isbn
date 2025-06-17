@@ -39,13 +39,6 @@ Deno.test({
 });
 
 Deno.test({
-    name: "ISBNs with a valid check digit but unrecognised gs1 are not valid",
-    fn: () => {
-        assertFalse(validateChecksum("9779295055125"));
-    },
-});
-
-Deno.test({
     name: "Valid ISBN-13s consisting of only digits can be validated",
     fn: () => {
         assert(validateChecksum("9789295055124"));
@@ -112,6 +105,11 @@ Deno.test({
             "Invalid ISBN format",
         );
         assertThrows(
+            () => ISBN.parse("9779295055125"),
+            Error,
+            "Invalid ISBN GS1 prefix",
+        );
+        assertThrows(
             () => ISBN.parse("9780802130205"),
             Error,
             "Invalid ISBN Check Digit",
@@ -132,6 +130,10 @@ Deno.test({
             {err: "Invalid ISBN format"},
         );
         assertEquals(
+            ISBN.parseResult("9779295055125"),
+            {err: "Invalid ISBN GS1 prefix"},
+        );
+        assertEquals(
             ISBN.parseResult("9780802130205"),
             {err: "Invalid ISBN Check Digit"},
         );
@@ -149,6 +151,10 @@ Deno.test({
             undefined
         );
         assertEquals(
+            ISBN.parseOrUndefined("9779295055125"),
+            undefined
+        );
+        assertEquals(
             ISBN.parseOrUndefined("9780802130205"),
             undefined
         );
@@ -162,3 +168,29 @@ Deno.test({
         );
     },
 });
+
+Deno.test({
+    name: "ISBNs cannot contain linebreaks",
+    fn: () => {
+        assertEquals(
+            ISBN.parseResult("978-90-70002-34-3\n9780802130204"),
+            {err: "Invalid ISBN format"},
+        );
+        assertEquals(
+            ISBN.parseResult("ISBN\n9780802130204"),
+            {err: "Invalid ISBN format"},
+        );
+        assertEquals(
+            ISBN.parseResult("\nISBN 9780802130204"),
+            {err: "Invalid ISBN format"},
+        );
+        assertEquals(
+            ISBN.parseResult("ISBN 9780802130204\n"),
+            {err: "Invalid ISBN format"},
+        );
+        assertEquals(
+            ISBN.parseResult("978\n90 70002 34 3"),
+            {err: "Invalid ISBN format"},
+        );
+    }
+})
