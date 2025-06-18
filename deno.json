@@ -3,8 +3,9 @@
   "version": "0.0.6",
   "license": "Apache-2.0",
   "exports": {
-    ".": "./src/main.js",
-    "./legacy": "./src/legacy.js"
+    ".": "./src/iso2108.2017.js",
+    "./2017": "./src/iso2108.2017.js",
+    "./2005": "./src/iso2108.2005.js"
   },
   "lock": false,
   "publish": {
@@ -13,5 +14,10 @@
       "README.md",
       "src/**"
     ]
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-empty-pattern"]
+    }
   }
 }

@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-/* @ts-self-types="./main.d.ts" */
+/* @ts-self-types="./iso2108.2017.d.ts" */
 
+import {parseIsbn13} from "./utils.js";
 import rangeInfo from "./range.json" with {type: "json"};
-import {
-    parseIsbn13,
-    hasValidIsbn13CheckDigit,
-    isbn13CheckDigit, matchIsbn13,
-} from "./utils.js";
 
-export class ISBN {
+
+export default class ISBN {
     constructor(gs1, group, registrant, publication, checkDigit) {
         Object.defineProperty(this, "gs1", {value: gs1});
         Object.defineProperty(this, "group", {value: group});
@@ -32,7 +29,7 @@ export class ISBN {
     }
 
     static parse(string) {
-        const {result, err} = ISBN.parseResult(string);
+        const {result, err} = this.parseResult(string);
         if (err !== undefined) {
             throw Error(err);
         } else {
@@ -41,11 +38,16 @@ export class ISBN {
     }
 
     static parseResult(string) {
-        return parseIsbn13(string);
+        const {result, err} = parseIsbn13(string);
+        if (err === undefined) {
+            return {result: new ISBN(...result)};
+        } else {
+            return {err: err};
+        }
     }
 
     static parseOrUndefined(string) {
-        const {result, err} = ISBN.parseResult(string);
+        const {result, err} = this.parseResult(string);
         if (err !== undefined) {
             return undefined;
         } else {
@@ -54,10 +56,10 @@ export class ISBN {
     }
 
     static isValid(string) {
-        return this.parseResult(string).result !== undefined
+        return this.parseResult(string).result !== undefined;
     }
 
-    components() {
+    components({} = {}) {
         return [
             this.gs1,
             this.group,
@@ -71,28 +73,15 @@ export class ISBN {
         return rangeInfo[this.gs1][this.group]["agency"];
     }
 
-    get digits() {
+    digits({} = {}) {
         return this.components().join("");
     }
 
-    asNumber() {
-        return Number.parseInt(this.digits);
-    }
-
-    toString() {
-        return `ISBN ${this[Symbol.toStringTag]}`;
+    toString({} = {}) {
+        return `ISBN ${this.components().join("-")}`;
     }
 
     get [Symbol.toStringTag]() {
         return this.components().join("-");
     }
-}
-
-export function hasValidCheckDigit(string) {
-    const digits = matchIsbn13(string)
-    return digits !== undefined && hasValidIsbn13CheckDigit(digits)
-}
-
-export function checkDigit(digits) {
-    return isbn13CheckDigit(...digits)
 }

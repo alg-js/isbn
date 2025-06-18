@@ -14,8 +14,40 @@
  */
 
 import rangeInfo from "./range.json" with {type: "json"};
-import {ISBN} from "./main.js";
-import {ISBN_10, ISBN_13} from "./format_spec.js";
+
+
+const sym = /[^\p{L}\p{N}]*/u.source;
+const notLetter = /\p{N}\p{S}\p{P}\p{M}\p{Z}\p{C}/u.source;
+const nonLatin = new RegExp(`[^\\p{Script=Latin}${notLetter}]`, "u").source;
+
+const isbn13Prefix = new RegExp(`${sym}ISBN${sym}(?:13)?${sym}`, "u").source;
+const isbn10Prefix = new RegExp(`${sym}ISBN${sym}(?:10)?${sym}`, "u").source;
+const trans13Prefix = new RegExp(
+    `(?:${sym}${nonLatin}{4,}${sym}(?:13)?${sym})?`, "u",
+).source;
+const trans10Prefix = new RegExp(
+    `(?:${sym}${nonLatin}{4,}${sym}(?:10)?${sym})?`, "u",
+).source;
+const doiPrefix = /.*(?<!\d)10\./.source;
+const urnPrefix = /.*URN:ISBN:/.source;
+
+const prefix13 = new RegExp(
+    `(?:(?:${trans13Prefix}${isbn13Prefix})`
+    + `|(?:${isbn13Prefix}${trans13Prefix})`
+    + `|(?:${doiPrefix})`
+    + `|(?:${urnPrefix}))`,
+    "u",
+).source;
+const prefix10 = new RegExp(
+    `(?:(?:${trans10Prefix}${isbn10Prefix})`
+    + `|(?:${isbn10Prefix}${trans10Prefix}))`,
+    "u",
+).source;
+const digits13 = /(?<!\d)(?<digits>[\d\p{S}\p{P}\p{Z}]{13,})/u.source;
+const digits10 = /(?<!\d)(?<digits>[\d\p{S}\p{P}\p{Z}]{10,})/u.source;
+
+const ISBN13RE = new RegExp(`^(?:${prefix13})?${digits13}$`, "ui");
+const ISBN10RE = new RegExp(`^(?:${prefix10})?${digits10}$`, "ui");
 
 
 export function parseIsbn13(string) {
@@ -43,16 +75,9 @@ export function parseIsbn13(string) {
     }
     const publication = rest.slice(registrant.length, -1);
     const checkDigit = rest.at(-1);
-    return {
-        result: new ISBN(
-            prefix,
-            group,
-            registrant,
-            publication,
-            checkDigit,
-        ),
-    };
+    return {result: [prefix, group, registrant, publication, checkDigit]};
 }
+
 
 export function parseIsbn10(string) {
     const digits = matchIsbn10(string);
@@ -73,19 +98,13 @@ export function parseIsbn10(string) {
         return {err: "Unrecognised ISBN registrant element"};
     }
     const publication = rest.slice(registrant.length, -1);
-    return {
-        result: new ISBN(
-            "978",
-            group,
-            registrant,
-            publication,
-            isbn13CheckDigit(..."978", ...group, ...registrant, ...publication),
-        ),
-    };
+    const checkDigit = rest.at(-1);
+    return {result: [group, registrant, publication, checkDigit]};
 }
 
+
 export function matchIsbn13(string) {
-    const digits = ISBN_13.exec(string)
+    const digits = ISBN13RE.exec(string)
         ?.groups
         ?.digits
         ?.replaceAll?.(/[\-\s./]/g, "");
@@ -97,8 +116,8 @@ export function matchIsbn13(string) {
 }
 
 
-export function matchIsbn10(string) {
-    const digits = ISBN_10.exec(string)
+function matchIsbn10(string) {
+    const digits = ISBN10RE.exec(string)
         ?.groups
         ?.digits
         ?.replaceAll?.(/[\-\s./]/g, "")
@@ -111,13 +130,15 @@ export function matchIsbn10(string) {
 }
 
 
-export function hasValidIsbn13CheckDigit(digits) {
+function hasValidIsbn13CheckDigit(digits) {
     return isbn13CheckDigit(...digits.slice(0, -1)) === digits.at(-1);
 }
 
-export function hasValidIsbn10CheckDigit(digits) {
+
+function hasValidIsbn10CheckDigit(digits) {
     return isbn10CheckDigit(...digits.slice(0, -1)) === digits.at(-1);
 }
+
 
 function findRegistrant(rest, rules) {
     for (let i = 0; i < rules.length; i += 3) {
@@ -132,6 +153,7 @@ function findRegistrant(rest, rules) {
     return undefined;
 }
 
+
 export function isbn13CheckDigit(...args) {
     if (args.length === 12) {
         const checkSum = args
@@ -143,12 +165,13 @@ export function isbn13CheckDigit(...args) {
     }
 }
 
+
 export function isbn10CheckDigit(...args) {
     if (args.length === 9) {
         const checkSum = args
             .map(e => Number(e))
             .reduce((a, e, i) => a + (10 - i) * e);
-        const checkDigit = (11 - checkSum % 11) % 11
+        const checkDigit = (11 - checkSum % 11) % 11;
         return checkDigit === 10 ? "X" : checkDigit.toString();
     } else {
         return undefined;
