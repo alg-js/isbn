@@ -15,34 +15,8 @@
 
 import rangeInfo from "./range.json" with {type: "json"};
 
-
-const sym = /[^\p{L}\p{N}]*/u.source;
-const notLetter = /\p{N}\p{S}\p{P}\p{M}\p{Z}\p{C}/u.source;
-const nonLatin = new RegExp(`[^\\p{Script=Latin}${notLetter}]`, "u").source;
-
-const isbn13Prefix = new RegExp(`${sym}ISBN${sym}(?:13)?${sym}`, "u").source;
-const isbn10Prefix = new RegExp(`${sym}ISBN${sym}(?:10)?${sym}`, "u").source;
-const trans13Prefix = new RegExp(
-    `(?:${sym}${nonLatin}{4,}${sym}(?:13)?${sym})?`, "u",
-).source;
-const trans10Prefix = new RegExp(
-    `(?:${sym}${nonLatin}{4,}${sym}(?:10)?${sym})?`, "u",
-).source;
-const doiPrefix = /.*(?<!\d)10\./.source;
-const urnPrefix = /.*URN:ISBN:/.source;
-
-const prefix13 = new RegExp(
-    `(?:(?:${trans13Prefix}${isbn13Prefix})`
-    + `|(?:${isbn13Prefix}${trans13Prefix})`
-    + `|(?:${doiPrefix})`
-    + `|(?:${urnPrefix}))`,
-    "u",
-).source;
-const prefix10 = new RegExp(
-    `(?:(?:${trans10Prefix}${isbn10Prefix})`
-    + `|(?:${isbn10Prefix}${trans10Prefix}))`,
-    "u",
-).source;
+const prefix13 = /.*(?<!\d)10\.|.*URN:ISBN:|(?:\D|13)*/u.source;
+const prefix10 = /(?:\D|10)*/.source;
 const digits13 = /(?<!\d)(?<digits>[\d\p{S}\p{P}\p{Z}]{13,})/u.source;
 const digits10 = /(?<!\d)(?<digits>[\d\p{S}\p{P}\p{Z}]{10,})/u.source;
 
