@@ -35,7 +35,7 @@ const registMsg = "Unrecognised ISBN registrant element";
 Deno.test({
     name: "Valid ISBN-10s can be parsed",
     fn: () => {
-        const enemy = ISBN.parse("ISBN 0 14 00.2346 1");
+        const enemy = ISBN.parseOrThrow("ISBN 0 14 00.2346 1");
         assertEquals(enemy.agency, "English language");
         assertEquals(enemy.digits(), "9780140023466");
         assertEquals(enemy.digits({format: "ISBN-13"}), "9780140023466");
@@ -60,7 +60,7 @@ Deno.test({
 Deno.test({
     name: "Valid ISBN-13s can be parsed",
     fn: () => {
-        const enemy = ISBN.parse("ISBN-13 978-0-8021-3020-4");
+        const enemy = ISBN.parseOrThrow("ISBN-13 978-0-8021-3020-4");
         assertEquals(enemy.agency, "English language");
         assertEquals(enemy.digits(), "9780802130204");
         assertEquals(enemy.digits({format: "ISBN-13"}), "9780802130204");
@@ -85,7 +85,7 @@ Deno.test({
 Deno.test({
     name: "Format functions reject unrecognised formats",
     fn: () => {
-        const enemy = ISBN.parse("ISBN 0 14 00.2346 1");
+        const enemy = ISBN.parseOrThrow("ISBN 0 14 00.2346 1");
         assertThrows(() => enemy.digits({format: "ISBN-12"}));
         assertThrows(() => enemy.toString({format: "ISBN-12"}));
         assertThrows(() => enemy.components({format: "ISBN-12"}));
@@ -95,9 +95,9 @@ Deno.test({
 Deno.test({
     name: "ISBNs with non-latin prefixes are valid",
     fn: () => {
-        const base = ISBN.parse("ISBN 0 14 00.2346 1");
-        const zsh10 = ISBN.parse("(国际书号-10) ISBN-10 0 14 00.2346 1");
-        const zsh13 = ISBN.parse("(国际书号-13) ISBN-13 978-0-14-002346-6");
+        const base = ISBN.parseOrThrow("ISBN 0 14 00.2346 1");
+        const zsh10 = ISBN.parseOrThrow("(国际书号-10) ISBN-10 0 14 00.2346 1");
+        const zsh13 = ISBN.parseOrThrow("(国际书号-13) ISBN-13 978-0-14-002346-6");
         assertEquals(zsh10.toString(), base.toString());
         assertEquals(zsh13.toString(), base.toString());
     },
@@ -106,19 +106,19 @@ Deno.test({
 Deno.test({
     name: "ISBNs cannot incorrectly label themselves as ISBN-10 or ISBN-13",
     fn: () => {
-        assertThrows(() => ISBN.parse("ISBN-13 0 14 00.2346 1"));
-        assertThrows(() => ISBN.parse("ISBN-10 978-0-14-002346-6"));
-        assertThrows(() => ISBN.parse("国际书号-13 ISBN-10 0 14 00.2346 1"));
-        assertThrows(() => ISBN.parse("国际书号-10 ISBN-13 978-0-14-002346-6"));
-        assertThrows(() => ISBN.parse("国际书号-10 ISBN-13 0 14 00.2346 1"));
-        assertThrows(() => ISBN.parse("国际书号-13 ISBN-10 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("ISBN-13 0 14 00.2346 1"));
+        assertThrows(() => ISBN.parseOrThrow("ISBN-10 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-13 ISBN-10 0 14 00.2346 1"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-10 ISBN-13 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-10 ISBN-13 0 14 00.2346 1"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-13 ISBN-10 978-0-14-002346-6"));
     },
 });
 
 Deno.test({
     name: "ISBNs can parse results and optionals",
     fn: () => {
-        const enemy = ISBN.parse("ISBN 0 14 00.2346 1");
+        const enemy = ISBN.parseOrThrow("ISBN 0 14 00.2346 1");
         const enemyResult = ISBN.parseResult("ISBN 0 14 00.2346 1");
         const enemyOptional = ISBN.parseOrUndefined("ISBN 0 14 00.2346 1");
         assertEquals(enemyResult, {result: enemy});
@@ -129,14 +129,14 @@ Deno.test({
 Deno.test({
     name: "Invalid ISBNs are not parsed",
     fn: () => {
-        assertThrows(() => ISBN.parse(invalidFmt), Error, fmtMsg);
-        assertThrows(() => ISBN.parse(invalidPrefix), Error, prefixMsg);
-        assertThrows(() => ISBN.parse(invalidCheck13), Error, digitMsg);
-        assertThrows(() => ISBN.parse(invalidGroup13), Error, groupMsg);
-        assertThrows(() => ISBN.parse(invalidRegistrant13), Error, registMsg);
-        assertThrows(() => ISBN.parse(invalidCheck10), Error, digitMsg);
-        assertThrows(() => ISBN.parse(invalidGroup10), Error, groupMsg);
-        assertThrows(() => ISBN.parse(invalidRegistrant10), Error, registMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidFmt), Error, fmtMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidPrefix), Error, prefixMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidCheck13), Error, digitMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidGroup13), Error, groupMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidRegistrant13), Error, registMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidCheck10), Error, digitMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidGroup10), Error, groupMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidRegistrant10), Error, registMsg);
 
         assertEquals(ISBN.parseResult(invalidFmt), {err: fmtMsg});
         assertEquals(ISBN.parseResult(invalidPrefix), {err: prefixMsg});

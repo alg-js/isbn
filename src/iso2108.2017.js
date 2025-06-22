@@ -28,7 +28,7 @@ export default class ISBN {
         Object.defineProperty(this, "checkDigit", {value: checkDigit});
     }
 
-    static parse(string) {
+    static parseOrThrow(string) {
         const {result, err} = this.parseResult(string);
         if (err !== undefined) {
             throw Error(err);

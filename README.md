@@ -4,10 +4,10 @@
 [![License](https://img.shields.io/badge/Apache--2.0-green?label=license)](https://codeberg.org/algjs/isbn/src/branch/main/LICENSE)
 [![JSR](https://jsr.io/badges/@alg/isbn)](https://jsr.io/@alg/isbn)
 
-A standalone package for ISO 2108:2017 (AKA ISBN) parsing, validating, and
-formatting ISBN values.
+A standalone package for ISO 2108:2017 (i.e. ISBN) parsing, validating, and
+formatting.
 
-Provides legacy support for ISO 2108:2005 (e.g. ISBN-10s).
+Provides legacy support for ISO 2108:2005 (i.e. ISBN-10s).
 
 ## Install
 
@@ -65,20 +65,23 @@ Below are some examples of ISBNs being parsed:
 ```javascript
 import ISBN from "@alg/isbn";
 
-const dunce = ISBN.parse("9780802130204");
+const dunce = ISBN.parseOrThrow("9780802130204");
 console.log(dunce.toString());  // ISBN 978-0-8021-3020-4
 console.log(dunce.agency);  // English language
 console.log(dunce.publication);  // 3020
+console.log(dunce.components());  // [ "978", "0", "8021", "3020", "4" ]
 
-const idioten = ISBN.parse("ISBN 978 3 423 21434 6");
+const idioten = ISBN.parseOrThrow("ISBN 978 3 423 21434 6");
 console.log(idioten.toString());  // ISBN 978-3-423-21434-6
 console.log(idioten.agency);  // German language
 console.log(idioten.registrant);  // 423
+console.log(idioten.digits());  // 9783423214346
 
-const 笨蛋联盟 = ISBN.parse("(国际书号13) ISBN-13: 978-9865896454");
+const 笨蛋联盟 = ISBN.parseOrThrow("(国际书号13) ISBN-13: 978-9865896454");
 console.log(笨蛋联盟.toString());  // ISBN 978-986-5896-45-4
 console.log(笨蛋联盟.gs1);  // 978
 console.log(笨蛋联盟.checkDigit);  // 4
+console.log(笨蛋联盟.group);  // 986
 ```
 
 In practice, many websites, stores, publishers do not strictly follow the ISO
@@ -99,9 +102,9 @@ For example:
 import {ISBN} from "@alg/isbn";
 
 try {
-    ISBN.parse("9799999999983");
+  ISBN.parseOrThrow("9799999999983");
 } catch (e) {
-    console.log(e.toString());  // Error: Unrecognised ISBN group element
+  console.log(e.toString());  // Error: Unrecognised ISBN group element
 }
 
 // {err: "Invalid ISBN Check Digit"},
@@ -138,7 +141,7 @@ ISBNs can be formatted as either ISBN-10 or ISBN-13 elements:
 ```javascript
 import ISBN from "@alg/isbn/2005";
 
-const enemy = ISBN.parse("ISBN 0 14 00.2346 1");
+const enemy = ISBN.parseOrThrow("ISBN 0 14 00.2346 1");
 console.log(enemy.toString());  // ISBN 978-0-14-002346-6
 console.log(enemy.toString({format: "ISBN"}));  // ISBN 978-0-14-002346-6
 console.log(enemy.toString({format: "ISBN-13"}));  // ISBN-13 978-0-14-002346-6

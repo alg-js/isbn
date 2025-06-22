@@ -42,7 +42,7 @@ export default class ISBN {
      * @returns {ISBN}
      * @throws {Error} If the ISBN is not valid with a reason
      */
-    static parse(string: string): ISBN;
+    static parseOrThrow(string: string): ISBN;
 
     /**
      * Parses a given ISBN as a result. A result is of the form:

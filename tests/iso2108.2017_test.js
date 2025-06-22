@@ -34,7 +34,7 @@ const registrantMsg = "Unrecognised ISBN registrant element";
 Deno.test({
     name: "Valid ISBN-13s can be parsed",
     fn: () => {
-        const enemy = ISBN.parse("ISBN 978-0-8021-3020-4");
+        const enemy = ISBN.parseOrThrow("ISBN 978-0-8021-3020-4");
         assertEquals(enemy.agency, "English language");
         assertEquals(enemy.digits(), "9780802130204");
         assertEquals(enemy.toString(), "ISBN 978-0-8021-3020-4");
@@ -45,9 +45,9 @@ Deno.test({
 Deno.test({
     name: "ISBN-As can be validated",
     fn: () => {
-        const base = ISBN.parse("9789295055124");
-        const isbna = ISBN.parse("ISBN-A 10.978.92.95055/124");
-        const url = ISBN.parse("https://doi.org/10.978.92.95055/124");
+        const base = ISBN.parseOrThrow("9789295055124");
+        const isbna = ISBN.parseOrThrow("ISBN-A 10.978.92.95055/124");
+        const url = ISBN.parseOrThrow("https://doi.org/10.978.92.95055/124");
         assertEquals(isbna.toString(), base.toString());
         assertEquals(url.toString(), base.toString());
     },
@@ -56,9 +56,9 @@ Deno.test({
 Deno.test({
     name: "URN:ISBNs can be validated",
     fn: () => {
-        const base = ISBN.parse("9789070002343");
-        const urn = ISBN.parse("URN:ISBN:978-90-70002-34-3");
-        const url = ISBN.parse("https://urn.fi/URN:ISBN:978-90-70002-34-3");
+        const base = ISBN.parseOrThrow("9789070002343");
+        const urn = ISBN.parseOrThrow("URN:ISBN:978-90-70002-34-3");
+        const url = ISBN.parseOrThrow("https://urn.fi/URN:ISBN:978-90-70002-34-3");
         assertEquals(urn.toString(), base.toString());
         assertEquals(url.toString(), base.toString());
     },
@@ -67,8 +67,8 @@ Deno.test({
 Deno.test({
     name: "ISBNs with non-latin prefixes are valid",
     fn: () => {
-        const base = ISBN.parse("ISBN-13 978-0-8021-3020-4");
-        const zsh13 = ISBN.parse("(国际书号-13) ISBN-13 978-0-8021-3020-4");
+        const base = ISBN.parseOrThrow("ISBN-13 978-0-8021-3020-4");
+        const zsh13 = ISBN.parseOrThrow("(国际书号-13) ISBN-13 978-0-8021-3020-4");
         assertEquals(zsh13.toString(), base.toString());
     },
 });
@@ -76,16 +76,16 @@ Deno.test({
 Deno.test({
     name: "ISBNs cannot incorrectly label themselves as ISBN-10s",
     fn: () => {
-        assertThrows(() => ISBN.parse("ISBN-10 978-0-14-002346-6"));
-        assertThrows(() => ISBN.parse("国际书号-10 ISBN-13 978-0-14-002346-6"));
-        assertThrows(() => ISBN.parse("国际书号-13 ISBN-10 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("ISBN-10 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-10 ISBN-13 978-0-14-002346-6"));
+        assertThrows(() => ISBN.parseOrThrow("国际书号-13 ISBN-10 978-0-14-002346-6"));
     },
 });
 
 Deno.test({
     name: "ISBNs can parse results and optionals",
     fn: () => {
-        const enemy = ISBN.parse("978-0-8021-3020-4");
+        const enemy = ISBN.parseOrThrow("978-0-8021-3020-4");
         const enemyResult = ISBN.parseResult("978-0-8021-3020-4");
         const enemyOptional = ISBN.parseOrUndefined("978-0-8021-3020-4");
         assertEquals(enemyResult, {result: enemy});
@@ -96,11 +96,11 @@ Deno.test({
 Deno.test({
     name: "Invalid ISBNs are not parsed",
     fn: () => {
-        assertThrows(() => ISBN.parse(invalidFmt), Error, fmtMsg);
-        assertThrows(() => ISBN.parse(invalidPrefix), Error, prefixMsg);
-        assertThrows(() => ISBN.parse(invalidCheck), Error, digitMsg);
-        assertThrows(() => ISBN.parse(invalidGroup), Error, groupMsg);
-        assertThrows(() => ISBN.parse(invalidRegistrant), Error, registrantMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidFmt), Error, fmtMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidPrefix), Error, prefixMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidCheck), Error, digitMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidGroup), Error, groupMsg);
+        assertThrows(() => ISBN.parseOrThrow(invalidRegistrant), Error, registrantMsg);
 
         assertEquals(ISBN.parseResult(invalidFmt), {err: fmtMsg});
         assertEquals(ISBN.parseResult(invalidPrefix), {err: prefixMsg});

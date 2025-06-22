@@ -1,6 +1,6 @@
 {
   "name": "@alg/isbn",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "license": "Apache-2.0",
   "exports": {
     ".": "./src/iso2108.2017.js",
@@ -14,10 +14,5 @@
       "README.md",
       "src/**"
     ]
-  },
-  "lint": {
-    "rules": {
-      "exclude": ["no-empty-pattern"]
-    }
   }
 }

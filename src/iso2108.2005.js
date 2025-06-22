@@ -41,7 +41,7 @@ export default class ISBN {
         return new ISBN("978", group, registrant, publication, checkDigit);
     }
 
-    static parse(string) {
+    static parseOrThrow(string) {
         const {result, err} = this.parseResult(string);
         if (err !== undefined) {
             throw Error(err);
