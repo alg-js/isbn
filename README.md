@@ -90,7 +90,7 @@ ISBNs can be formatted.
 
 Three static constructor methods for parsing ISBNs are available:
 
-- `ISBN.parse`: Throws if an ISBN is not valid with a reason
+- `ISBN.parseOrThrow`: Throws if an ISBN is not valid with a reason
 - `ISBN.parseResult`: Returns an object indicating whether the parsing was
   successful of the form `{result: ISBN}|{err: reason}`
 - `ISBN.parseOrUndefined`: Returns an ISBN or undefined if the given string is
